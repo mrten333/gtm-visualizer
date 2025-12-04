@@ -17,6 +17,12 @@
   filter: drop-shadow(0 0 10px currentColor);
 }
 
+/* Hide node handles (connection dots) */
+.react-flow__handle {
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* Edge styling */
 .react-flow__edge-path {
   stroke-width: 8;
