@@ -1,6 +1,14 @@
 import { Upload, Lock, Play } from 'lucide-react';
 import type { GTMExport } from '../types/gtm';
 
+declare global {
+  interface Window {
+    umami?: {
+      track: (event: string, data?: Record<string, string>) => void;
+    };
+  }
+}
+
 interface FileUploaderProps {
   onFileLoad: (data: GTMExport) => void;
 }
@@ -14,6 +22,7 @@ export function FileUploader({ onFileLoad }: FileUploaderProps) {
     reader.onload = (e) => {
       try {
         const json = JSON.parse(e.target?.result as string);
+        window.umami?.track('gtm-viz-start', { method: 'file_upload' });
         onFileLoad(json);
       } catch (error) {
         alert('Error parsing JSON file. Please ensure it is a valid GTM export.');
@@ -35,6 +44,7 @@ export function FileUploader({ onFileLoad }: FileUploaderProps) {
       reader.onload = (event) => {
         try {
           const json = JSON.parse(event.target?.result as string);
+          window.umami?.track('gtm-viz-start', { method: 'file_upload' });
           onFileLoad(json);
         } catch (error) {
           alert('Error parsing JSON file. Please ensure it is a valid GTM export.');
@@ -47,12 +57,18 @@ export function FileUploader({ onFileLoad }: FileUploaderProps) {
 
   const handleLoadDemo = async () => {
     try {
-      const response = await fetch('/demo-gtm-export.json');
+      // Use relative path to work with Vite's base: './' configuration
+      const response = await fetch('./demo-gtm-export.json');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
       const demoData = await response.json();
+      window.umami?.track('gtm-viz-start', { method: 'demo' });
       onFileLoad(demoData);
     } catch (error) {
-      alert('Error loading demo data.');
-      console.error(error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Error loading demo data: ${errorMessage}`);
+      console.error('Demo load error:', error);
     }
   };
 
