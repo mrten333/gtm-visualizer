@@ -9,6 +9,7 @@ import { parseGTMJson } from './utils/parseGTM';
 function App() {
   const [parsedData, setParsedData] = useState<{ nodes: Node[]; edges: any[] } | null>(null);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [colorMode, setColorMode] = useState<'light' | 'dark'>('dark');
 
   const handleFileLoad = (data: GTMExport) => {
@@ -18,10 +19,12 @@ function App() {
 
   const handleNodeClick = (node: Node) => {
     setSelectedNode(node);
+    setIsPanelOpen(true);
   };
 
   const handleCloseSidebar = () => {
-    setSelectedNode(null);
+    setIsPanelOpen(false);
+    // Node stays selected, panel just closes
   };
 
   return (
@@ -40,6 +43,7 @@ function App() {
           />
           <InspectorSidebar
             node={selectedNode}
+            isOpen={isPanelOpen}
             onClose={handleCloseSidebar}
             colorMode={colorMode}
           />

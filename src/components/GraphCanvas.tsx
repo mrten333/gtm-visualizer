@@ -181,7 +181,7 @@ export function GraphCanvas({ nodes, edges, onNodeClick, selectedNodeId, colorMo
       {/* Light/Dark Mode Toggle */}
       <button
         onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')}
-        className={`absolute top-4 right-4 z-10 p-3 rounded-lg transition-colors shadow-lg ${
+        className={`absolute top-4 left-4 z-10 p-3 rounded-lg transition-colors shadow-lg ${
           colorMode === 'dark'
             ? 'bg-[#1a2332] border border-slate-700 hover:border-emerald-500'
             : 'bg-white border border-slate-300 hover:border-emerald-500'
