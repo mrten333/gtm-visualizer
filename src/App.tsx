@@ -3,11 +3,12 @@ import type { Node } from '@xyflow/react';
 import { FileUploader } from './components/FileUploader';
 import { GraphCanvas } from './components/GraphCanvas';
 import { InspectorSidebar } from './components/InspectorSidebar';
-import type { GTMExport } from './types/gtm';
+import type { GTMExport, ContainerInfo } from './types/gtm';
 import { parseGTMJson } from './utils/parseGTM';
 
 function App() {
   const [parsedData, setParsedData] = useState<{ nodes: Node[]; edges: any[] } | null>(null);
+  const [containerInfo, setContainerInfo] = useState<ContainerInfo | null>(null);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [colorMode, setColorMode] = useState<'light' | 'dark'>('dark');
@@ -15,6 +16,14 @@ function App() {
   const handleFileLoad = (data: GTMExport) => {
     const parsed = parseGTMJson(data);
     setParsedData(parsed);
+    
+    // Extract container info
+    setContainerInfo({
+      name: data.containerVersion?.container?.name || 'Unknown Container',
+      publicId: data.containerVersion?.container?.publicId || '',
+      version: data.containerVersion?.containerVersionId || '',
+      exportTime: data.exportTime || '',
+    });
   };
 
   const handleNodeClick = (node: Node) => {
@@ -40,6 +49,7 @@ function App() {
             selectedNodeId={selectedNode?.id || null}
             colorMode={colorMode}
             setColorMode={setColorMode}
+            containerInfo={containerInfo}
           />
           <InspectorSidebar
             node={selectedNode}

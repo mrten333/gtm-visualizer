@@ -27,12 +27,27 @@ export interface GTMVariable {
   }>;
 }
 
+export interface GTMContainer {
+  name?: string;
+  publicId?: string;
+}
+
 export interface GTMContainerVersion {
+  containerVersionId?: string;
+  container?: GTMContainer;
   tag?: GTMTag[];
   trigger?: GTMTrigger[];
   variable?: GTMVariable[];
 }
 
 export interface GTMExport {
+  exportTime?: string;
   containerVersion: GTMContainerVersion;
+}
+
+export interface ContainerInfo {
+  name: string;
+  publicId: string;
+  version: string;
+  exportTime: string;
 }

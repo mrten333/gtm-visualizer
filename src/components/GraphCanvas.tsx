@@ -13,6 +13,7 @@ import '@xyflow/react/dist/style.css';
 import './GraphCanvas.css';
 import * as d3 from 'd3-force';
 import { Sun, Moon } from 'lucide-react';
+import type { ContainerInfo } from '../types/gtm';
 
 interface GraphCanvasProps {
   nodes: Node[];
@@ -21,6 +22,7 @@ interface GraphCanvasProps {
   selectedNodeId: string | null;
   colorMode: 'light' | 'dark';
   setColorMode: (mode: 'light' | 'dark') => void;
+  containerInfo: ContainerInfo | null;
 }
 
 // Force-directed layout using D3
@@ -58,7 +60,7 @@ function getLayoutedElements(nodes: Node[], edges: Edge[]) {
   return { nodes: layoutedNodes, edges };
 }
 
-export function GraphCanvas({ nodes, edges, onNodeClick, selectedNodeId, colorMode, setColorMode }: GraphCanvasProps) {
+export function GraphCanvas({ nodes, edges, onNodeClick, selectedNodeId, colorMode, setColorMode, containerInfo }: GraphCanvasProps) {
   const [nodesState, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edgesState, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [layoutedNodes, setLayoutedNodes] = React.useState<Node[]>([]);
@@ -178,6 +180,33 @@ export function GraphCanvas({ nodes, edges, onNodeClick, selectedNodeId, colorMo
 
   return (
     <div className={`w-full h-screen ${colorMode === 'dark' ? 'bg-[#0f1419]' : 'bg-slate-50'}`} data-theme={colorMode}>
+      {/* Container Info Header - desktop only */}
+      {containerInfo && (
+        <div className={`hidden md:block absolute top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-lg shadow-lg ${
+          colorMode === 'dark'
+            ? 'bg-[#1a2332] border border-slate-700'
+            : 'bg-white border border-slate-300'
+        }`}>
+          <div className="flex items-center gap-3 text-sm">
+            <span className={`font-semibold ${colorMode === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+              {containerInfo.name}
+            </span>
+            {containerInfo.publicId && (
+              <span className={`px-2 py-0.5 rounded text-xs font-mono ${
+                colorMode === 'dark' ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'
+              }`}>
+                {containerInfo.publicId}
+              </span>
+            )}
+            {containerInfo.version && (
+              <span className={`text-xs ${colorMode === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                v{containerInfo.version}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Light/Dark Mode Toggle */}
       <button
         onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')}
