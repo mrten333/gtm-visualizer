@@ -3,18 +3,36 @@
 }
 
 .react-flow__node.selected-node {
-  transform: scale(1.08);
-  filter: drop-shadow(0 0 15px currentColor);
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 12px currentColor);
+}
+
+/* Connected nodes - smaller glow */
+.connected-node {
+  z-index: 999 !important;
+}
+
+.react-flow__node.connected-node {
+  transform: scale(1.03);
+  filter: drop-shadow(0 0 10px currentColor);
 }
 
 /* Edge styling */
 .react-flow__edge-path {
   stroke-width: 8;
   opacity: 0.4;
+  transition: opacity 0.2s ease, stroke-width 0.2s ease;
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
   opacity: 0.8;
+}
+
+/* Connected edges - glow effect */
+.react-flow__edge.connected-edge .react-flow__edge-path {
+  stroke-width: 10;
+  opacity: 0.8;
+  filter: drop-shadow(0 0 6px currentColor);
 }
 
 /* Controls styling - Dark mode */

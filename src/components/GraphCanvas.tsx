@@ -70,84 +70,104 @@ export function GraphCanvas({ nodes, edges, onNodeClick, selectedNodeId, colorMo
     setEdges(lEdges);
   }, [nodes, edges, setEdges]);
 
+  // Find connected node IDs for the selected node
+  const connectedNodeIds = React.useMemo(() => {
+    if (!selectedNodeId) return new Set<string>();
+    const connected = new Set<string>();
+    edges.forEach(edge => {
+      if (edge.source === selectedNodeId) connected.add(edge.target);
+      if (edge.target === selectedNodeId) connected.add(edge.source);
+    });
+    return connected;
+  }, [selectedNodeId, edges]);
+
   // Apply selection styling and theme colors separately without re-running layout
   useEffect(() => {
     if (layoutedNodes.length === 0) return;
 
+    const applyNodeStyles = (node: Node) => {
+      const isSelected = node.id === selectedNodeId;
+      const isConnected = connectedNodeIds.has(node.id);
+      const nodeType = node.data?.type;
+
+      let borderColor = '#10b981'; // default emerald
+      let textColor = '#10b981';
+      if (nodeType === 'tag') {
+        borderColor = '#f87171';
+        textColor = '#f87171';
+      }
+      if (nodeType === 'variable') {
+        borderColor = '#3b82f6';
+        textColor = '#3b82f6';
+      }
+
+      const backgroundColor = colorMode === 'dark' ? '#1a2332' : '#ffffff';
+      
+      // Different glow intensities: selected (big), connected (medium), default (subtle)
+      let boxShadow: string;
+      if (colorMode === 'dark') {
+        if (isSelected) {
+          boxShadow = `0 0 30px ${borderColor}, 0 0 60px ${borderColor}88`;
+        } else if (isConnected) {
+          boxShadow = `0 0 15px ${borderColor}aa, 0 0 30px ${borderColor}55`;
+        } else {
+          boxShadow = `0 0 20px ${borderColor}66`;
+        }
+      } else {
+        if (isSelected) {
+          boxShadow = `0 0 20px ${borderColor}88, 0 4px 6px -1px rgba(0, 0, 0, 0.1)`;
+        } else if (isConnected) {
+          boxShadow = `0 0 12px ${borderColor}66, 0 4px 6px -1px rgba(0, 0, 0, 0.1)`;
+        } else {
+          boxShadow = `0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)`;
+        }
+      }
+
+      let className = '';
+      if (isSelected) className = 'selected-node';
+      else if (isConnected) className = 'connected-node';
+
+      return {
+        ...node,
+        style: {
+          ...node.style,
+          backgroundColor,
+          color: textColor,
+          border: isSelected ? `5px solid ${borderColor}` : isConnected ? `4px solid ${borderColor}` : `3px solid ${borderColor}`,
+          boxShadow,
+        },
+        selected: isSelected,
+        className
+      };
+    };
+
     setNodes((currentNodes) => {
       // If no current nodes, use layoutedNodes
       if (currentNodes.length === 0) {
-        return layoutedNodes.map(node => {
-          const isSelected = node.id === selectedNodeId;
-          const nodeType = node.data?.type;
-
-          let borderColor = '#10b981'; // default emerald
-          let textColor = '#10b981';
-          if (nodeType === 'tag') {
-            borderColor = '#f87171';
-            textColor = '#f87171';
-          }
-          if (nodeType === 'variable') {
-            borderColor = '#3b82f6';
-            textColor = '#3b82f6';
-          }
-
-          const backgroundColor = colorMode === 'dark' ? '#1a2332' : '#ffffff';
-          const boxShadow = colorMode === 'dark'
-            ? `0 0 20px ${borderColor}66`
-            : `0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)`;
-
-          return {
-            ...node,
-            style: {
-              ...node.style,
-              backgroundColor,
-              color: textColor,
-              border: isSelected ? `5px solid ${borderColor}` : `3px solid ${borderColor}`,
-              boxShadow,
-            },
-            selected: isSelected,
-            className: isSelected ? 'selected-node' : ''
-          };
-        });
+        return layoutedNodes.map(applyNodeStyles);
       }
-
       // Otherwise, preserve current positions and only update styling
-      return currentNodes.map(node => {
-        const isSelected = node.id === selectedNodeId;
-        const nodeType = node.data?.type;
-
-        let borderColor = '#10b981'; // default emerald
-        let textColor = '#10b981';
-        if (nodeType === 'tag') {
-          borderColor = '#f87171';
-          textColor = '#f87171';
-        }
-        if (nodeType === 'variable') {
-          borderColor = '#3b82f6';
-          textColor = '#3b82f6';
-        }
-
-        const backgroundColor = colorMode === 'dark' ? '#1a2332' : '#ffffff';
-        const boxShadow = colorMode === 'dark'
-          ? `0 0 20px ${borderColor}66`
-          : `0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)`;
-
-        return {
-          ...node,
-          style: {
-            ...node.style,
-            backgroundColor,
-            color: textColor,
-            border: isSelected ? `5px solid ${borderColor}` : `3px solid ${borderColor}`,
-            boxShadow,
-          },
-          selected: isSelected,
-          className: isSelected ? 'selected-node' : ''
-        };
-      });
+      return currentNodes.map(applyNodeStyles);
     });
-  }, [layoutedNodes, selectedNodeId, setNodes, colorMode]);
+  }, [layoutedNodes, selectedNodeId, connectedNodeIds, setNodes, colorMode]);
+
+  // Update edge styling based on selection
+  useEffect(() => {
+    if (!edges.length) return;
+    
+    setEdges(currentEdges => 
+      currentEdges.map(edge => {
+        const isConnectedEdge = selectedNodeId && 
+          (edge.source === selectedNodeId || edge.target === selectedNodeId);
+        
+        return {
+          ...edge,
+          className: isConnectedEdge ? 'connected-edge' : '',
+          animated: isConnectedEdge ? true : false,
+        };
+      })
+    );
+  }, [selectedNodeId, edges, setEdges]);
 
   const handleNodeClick = useCallback(
     (_event: React.MouseEvent, node: Node) => {
